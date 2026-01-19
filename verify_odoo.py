@@ -10,7 +10,7 @@ PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEID2nK2pCcGSbtS+U9jc2SCYxHWOo1eA4IR97bdif4+rx
 -----END PRIVATE KEY-----"""
 
-API_URL = 'https://api.pallawan.com/v1/payment/rest/live/create'
+API_URL = 'https://api.rasedi.com/v1/payment/rest/live/create'
 RELATIVE_PATH = '/v1/payment/rest/live/create'
 
 def sign(raw_data, private_key_pem):
@@ -76,7 +76,7 @@ def test_create_payment():
 def test_status(ref_code):
     print(f"\n--- Testing Status for {ref_code} ---")
     status_endpoint = f'/v1/payment/rest/live/status/{ref_code}'
-    url = f'https://api.pallawan.com{status_endpoint}'
+    url = f'https://api.rasedi.com{status_endpoint}'
     
     raw_sign = f"GET || {SECRET_KEY} || {status_endpoint}"
     signature = sign(raw_sign, PRIVATE_KEY)
@@ -100,7 +100,7 @@ def test_status(ref_code):
 def test_cancel(ref_code):
     print(f"\n--- Testing Cancel for {ref_code} ---")
     cancel_endpoint = f'/v1/payment/rest/live/cancel/{ref_code}'
-    url = f'https://api.pallawan.com{cancel_endpoint}'
+    url = f'https://api.rasedi.com{cancel_endpoint}'
     
     raw_sign = f"PATCH || {SECRET_KEY} || {cancel_endpoint}"
     signature = sign(raw_sign, PRIVATE_KEY)

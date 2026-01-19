@@ -21,7 +21,7 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'rasedi':
             return res
 
-        api_url = 'https://api.pallawan.com/v1/payment/rest/live/create' # Hardcoded as requested
+        api_url = 'https://api.rasedi.com/v1/payment/rest/live/create' # Hardcoded as requested
         # Ideally, use state (test/enabled) to switch URL or strict strict separation.
         # Rasedi user asked for hardcoded URL in Go SDK, assuming same here.
         # But Odoo has 'state'. Let's stick to live or make it configurable if needed.
@@ -49,7 +49,7 @@ class PaymentTransaction(models.Model):
         
         # Method / Key ID / Relative URL
         # URL mapping:
-        # Live: https://api.pallawan.com/v1/payment/rest/live/create
+        # Live: https://api.rasedi.com/v1/payment/rest/live/create
         # Relative: /v1/payment/rest/live/create
         relative_path = "/v1/payment/rest/live/create"
         
