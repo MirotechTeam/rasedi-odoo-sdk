@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payment_provider_form_rasedi" model="ir.ui.view">
+        <field name="name">Rasedi Provider Form</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+            <group name="provider_credentials" position="inside">
+                <group attrs="{'invisible': [('code', '!=', 'rasedi')]}">
+                    <field name="rasedi_secret_key" attrs="{'required': [('code', '=', 'rasedi'), ('state', '!=', 'disabled')]}"/>
+                    <field name="rasedi_private_key" attrs="{'required': [('code', '=', 'rasedi'), ('state', '!=', 'disabled')]}"/>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>
