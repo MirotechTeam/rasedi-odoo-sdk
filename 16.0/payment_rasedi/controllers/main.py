@@ -66,13 +66,15 @@ class PaymentPortalRasedi(PaymentPortal):
                 _logger.warning("Rasedi: Failed to force fetch status on return: %s", e)
         
         # Try to redirect to invoice if possible
-        try:
-            if tx and tx.state == 'done' and tx.invoice_ids:
-                invoice = tx.invoice_ids[0]
-                if invoice.state == 'posted':
-                    return request.redirect(f'/report/pdf/account.report_invoice/{invoice.id}')
-        except Exception:
-            _logger.warning("Rasedi: Could not redirect to invoice, falling back to status page.")
+        # Try to redirect to invoice if possible - DISABLED for now to prevent login issues
+        # Public users cannot access report download URLs directly without token.
+        # try:
+        #     if tx and tx.state == 'done' and tx.invoice_ids:
+        #         invoice = tx.invoice_ids[0]
+        #         if invoice.state == 'posted':
+        #             return request.redirect(f'/report/pdf/account.report_invoice/{invoice.id}')
+        # except Exception:
+        #     _logger.warning("Rasedi: Could not redirect to invoice, falling back to status page.")
 
         return request.redirect('/payment/status')
 

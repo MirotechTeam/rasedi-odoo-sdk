@@ -1,0 +1,21 @@
+{
+    'name': 'Rasedi Payment Provider',
+    'version': '17.0.1.0',
+    'category': 'Accounting/Payment Providers',
+    'sequence': 350,
+    'summary': 'A payment provider to accept payments via Rasedi.',
+    'author': 'Rasedi',
+    'website': 'https://rasedi.com',
+    'depends': ['payment', 'account_payment'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/payment_rasedi_gateway_data.xml',
+        'views/payment_provider_views.xml',
+        'views/payment_rasedi_templates.xml',
+        'data/payment_method_data.xml',
+        'data/payment_provider_data.xml',
+    ],
+    'images': ['static/description/main_screenshot.png'],
+    'application': False,
+    'license': 'LGPL-3',
+}

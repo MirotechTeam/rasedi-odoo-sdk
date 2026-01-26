@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="gateway_credit_card" model="payment.provider.rasedi.gateway">
+            <field name="name">Credit Card</field>
+            <field name="code">CREDIT_CARD</field>
+        </record>
+        <record id="gateway_fib" model="payment.provider.rasedi.gateway">
+            <field name="name">FIB</field>
+            <field name="code">FIB</field>
+        </record>
+        <record id="gateway_zain" model="payment.provider.rasedi.gateway">
+            <field name="name">Zain</field>
+            <field name="code">ZAIN</field>
+        </record>
+        <record id="gateway_asia_pay" model="payment.provider.rasedi.gateway">
+            <field name="name">Asia Pay</field>
+            <field name="code">ASIA_PAY</field>
+        </record>
+        <record id="gateway_fast_pay" model="payment.provider.rasedi.gateway">
+            <field name="name">Fast Pay</field>
+            <field name="code">FAST_PAY</field>
+        </record>
+        <record id="gateway_nass_wallet" model="payment.provider.rasedi.gateway">
+            <field name="name">Nass Wallet</field>
+            <field name="code">NASS_WALLET</field>
+        </record>
+    </data>
+</odoo>

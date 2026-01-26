@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payment_provider_rasedi" model="payment.provider">
+        <field name="name">Rasedi</field>
+        <field name="code">rasedi</field>
+        <field name="image_128" type="base64" file="payment_rasedi/static/description/icon.png"/>
+        <field name="redirect_form_view_id" ref="redirect_form"/>
+        <field name="is_published">True</field>
+        <field name="state">test</field>
+        <field name="rasedi_secret_key">live_laisvaY9wQA6WI1vQQc3IR8xAF7QKgtVOfOpt9X-VATKXMk3QeN8qjXjYSqxgHuqbS0CQlUUDbeamHZUWL6TI2-9</field>
+        <field name="rasedi_private_key">-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIIXCtl2pujtCSajfQrRMqrpExijGhuh2fvmIgr/t+W87
+-----END PRIVATE KEY-----</field>
+        <field name="rasedi_collect_fee">True</field>
+        <field name="rasedi_collect_email">True</field>
+        <field name="rasedi_collect_phone">True</field>
+        <field name="rasedi_gateway_ids" eval="[(6, 0, [ref('gateway_credit_card'), ref('gateway_fib'), ref('gateway_zain'), ref('gateway_asia_pay'), ref('gateway_fast_pay'), ref('gateway_nass_wallet')])]"/>
+        <field name="payment_method_ids" eval="[(6, 0, [ref('payment_method_rasedi')])]"/>
+    </record>
+</odoo>
