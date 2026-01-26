@@ -5,24 +5,45 @@ import pprint
 
 from odoo import http
 from odoo.http import request
+from odoo.addons.payment.controllers.portal import PaymentPortal
 
 _logger = logging.getLogger(__name__)
 
-class RasediController(http.Controller):
+class PaymentPortalRasedi(PaymentPortal):
     _return_url = '/payment/rasedi/return'
     _webhook_url = '/payment/rasedi/webhook'
+    
+    @http.route('/payment/status/poll', type='json', auth='public')
+    def poll_status(self):
+        """ Override poll_status to actively fetch Rasedi status if needed. """
+        _logger.info("Rasedi: poll_status called")
+        
+        # 1. Get the transaction ID from session
+        tx_id = request.session.get('__payment_monitored_tx_id__')
+        _logger.info(f"Rasedi: poll_status session tx_id: {tx_id}")
+        
+        if tx_id:
+            tx = request.env['payment.transaction'].sudo().browse(tx_id)
+            
+            # 2. Check conditions
+            if tx.exists() and tx.provider_code == 'rasedi':
+                _logger.info(f"Rasedi: poll_status checking tx {tx.reference} (state: {tx.state})")
+                if tx.state not in ['done', 'cancel', 'error']:
+                    try:
+                        _logger.info("Rasedi Polling: Force fetching status for tx %s", tx.reference)
+                        tx._rasedi_fetch_transaction_status()
+                    except Exception as e:
+                        _logger.warning("Rasedi Polling: Failed to fetch status: %s", e)
+        
+        return super().poll_status()
 
-    @http.route(_return_url, type='http', auth='public', methods=['GET', 'POST'], csrf=False, save_session=False)
+    @http.route(_return_url, type='http', auth='public', methods=['GET', 'POST'], csrf=False)
     def rasedi_return(self, **data):
         """ Handle user return from Rasedi. """
         _logger.info("Rasedi: received data from return URL %s", pprint.pformat(data))
-        # Rasedi usually redirects with referenceCode or status params
-        # We need to process it.
-        # But commonly we just redirect to status page directly if webhook handles logic.
-        # However, checking status here is safe.
+        
         tx = None
         if data:
-            # Capture the transaction linked to this data
             try:
                 request.env['payment.transaction'].sudo()._handle_notification_data('rasedi', data)
                 tx = request.env['payment.transaction'].sudo()._get_tx_from_notification_data('rasedi', data)
@@ -32,8 +53,17 @@ class RasediController(http.Controller):
         if not tx:
             # Fallback: Try to find transaction from session
             tx_id = request.session.get('__payment_monitored_tx_id__')
+            _logger.info(f"Rasedi: Return fallback session tx_id: {tx_id}")
             if tx_id:
                 tx = request.env['payment.transaction'].sudo().browse(tx_id)
+        
+        # ACTIVE CHECK: Fetch status from API to handle missing/delayed webhooks
+        if tx:
+            try:
+                _logger.info("Rasedi: Force fetching status on return for tx %s", tx.reference)
+                tx._rasedi_fetch_transaction_status()
+            except Exception as e:
+                _logger.warning("Rasedi: Failed to force fetch status on return: %s", e)
         
         # Try to redirect to invoice if possible
         try:

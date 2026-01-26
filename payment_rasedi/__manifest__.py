@@ -6,7 +6,7 @@
     'summary': 'A payment provider to accept payments via Rasedi.',
     'author': 'Rasedi',
     'website': 'https://rasedi.com',
-    'depends': ['payment'],
+    'depends': ['payment', 'account_payment'],
     'data': [
         'security/ir.model.access.csv',
         'data/payment_rasedi_gateway_data.xml',
