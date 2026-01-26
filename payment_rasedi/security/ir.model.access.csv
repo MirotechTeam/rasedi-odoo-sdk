@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_payment_provider_rasedi_gateway_public,payment.provider.rasedi.gateway public,model_payment_provider_rasedi_gateway,,1,0,0,0
+access_payment_provider_rasedi_gateway_admin,payment.provider.rasedi.gateway admin,model_payment_provider_rasedi_gateway,base.group_system,1,1,1,1

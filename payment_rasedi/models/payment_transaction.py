@@ -21,36 +21,50 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'rasedi':
             return res
 
-        api_url = 'https://stage.api.rasedi.com/v1/payment/rest/live/create' # Hardcoded as requested
-        # Ideally, use state (test/enabled) to switch URL or strict strict separation.
-        # Rasedi user asked for hardcoded URL in Go SDK, assuming same here.
-        # But Odoo has 'state'. Let's stick to live or make it configurable if needed.
-        # Task said "Hardcoded API URI".
+        api_url = 'https://stage.api.rasedi.com/v1/payment/rest/live/create'
         
         base_url = self.provider_id.get_base_url()
+        
+        # Enforce HTTPS and clean up double protocols
+        # Odoo inside Docker often thinks it is HTTP, but behind a tunnel (pinggy) it is HTTPS.
+        # Rasedi/Browsers dislike mixing, so we force HTTPS for the callback.
+        if base_url.startswith('http://'):
+            base_url = base_url.replace('http://', 'https://', 1)
+        
+        # Strip trailing slash
+        if base_url.endswith('/'):
+            base_url = base_url[:-1]
+            
         return_url = f"{base_url}/payment/rasedi/return"
         webhook_url = f"{base_url}/payment/rasedi/webhook"
 
+        selected_gateways = self.provider_id.rasedi_gateway_ids.mapped('code')
+        if not selected_gateways:
+            # Fallback if none selected, though admin should really select some.
+            selected_gateways = ["CREDIT_CARD"] 
+
         payload = {
-            'amount': str(self.amount), # Should be string
-            'title': self.reference,
+            'amount': str(int(self.amount)), 
+            'title': self.reference or "Order",
             'description': f"Order {self.reference}",
-            'gateways': ["CREDIT_CARD"], # or configurable
+            'gateways': selected_gateways,
             'redirectUrl': return_url,
             'callbackUrl': webhook_url,
-            'collectFeeFromCustomer': True,
-            'collectCustomerEmail': True if self.partner_email else False,
-            'collectCustomerPhoneNumber': True if self.partner_phone else False
+            'collectFeeFromCustomer': self.provider_id.rasedi_collect_fee,
+            'collectCustomerEmail': self.provider_id.rasedi_collect_email,
+            'collectCustomerPhoneNumber': self.provider_id.rasedi_collect_phone
         }
+
+        # Explicitly log the constructed payload for debugging
+        _logger.info("Rasedi: CONSTRUCTED PAYLOAD: %s", json.dumps(payload))
 
         # Signing
         secret_key = self.provider_id.rasedi_secret_key
         private_key = self.provider_id.rasedi_private_key
         
-        # Method / Key ID / Relative URL
-        # URL mapping:
-        # Live: https://api.rasedi.com/v1/payment/rest/live/create
-        # Relative: /v1/payment/rest/live/create
+        if not secret_key or secret_key == 'dummy' or not private_key or private_key == 'dummy':
+             raise ValidationError("Rasedi: Please configure the Secret Key and Private Key in the Payment Provider settings.")
+        
         relative_path = "/v1/payment/rest/live/create"
         
         raw_sign = f"POST || {secret_key} || {relative_path}"
@@ -61,6 +75,10 @@ class PaymentTransaction(models.Model):
             'x-id': secret_key,
             'x-signature': signature
         }
+
+        _logger.warning("Rasedi Request URL: %s", api_url)
+        _logger.warning("Rasedi Request Headers: %s", json.dumps(headers))
+        _logger.warning("Rasedi Request Payload: %s", json.dumps(payload))
 
         try:
             req = requests.post(api_url, json=payload, headers=headers, timeout=20)
@@ -138,12 +156,22 @@ class PaymentTransaction(models.Model):
         # Map statuses
         # SUCCESS, PENDING, CANCELED, FAILED
         
-        if status == 'SUCCESS':
+        if status == 'PAID':
+            _logger.info("Rasedi: Setting transaction %s to DONE (PAID)", self.reference)
             self._set_done()
         elif status == 'CANCELED':
+            _logger.info("Rasedi: Setting transaction %s to CANCELED", self.reference)
             self._set_canceled()
         elif status == 'FAILED':
+             _logger.info("Rasedi: Setting transaction %s to ERROR (FAILED)", self.reference)
              self._set_error("Payment Failed")
-        else:
-            # Pending
+        elif status == 'TIMED_OUT':
+             _logger.info("Rasedi: Setting transaction %s to ERROR (TIMED_OUT)", self.reference)
+             self._set_error("Payment Timed Out")
+        elif status == 'PENDING':
+            _logger.info("Rasedi: Setting transaction %s to PENDING", self.reference)
             self._set_pending()
+        else:
+            # Fallback or log unexpected status
+            _logger.warning("Rasedi: Received unknown status %s for tx %s", status, self.reference)
+            self._set_error("Unknown Status: %s" % status)

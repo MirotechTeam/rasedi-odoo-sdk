@@ -5,10 +5,16 @@
         <field name="model">payment.provider</field>
         <field name="inherit_id" ref="payment.payment_provider_form"/>
         <field name="arch" type="xml">
-            <group name="provider_credentials" position="inside">
+            <group name="provider_credentials" position="after">
                 <group attrs="{'invisible': [('code', '!=', 'rasedi')]}">
                     <field name="rasedi_secret_key" attrs="{'required': [('code', '=', 'rasedi'), ('state', '!=', 'disabled')]}"/>
                     <field name="rasedi_private_key" attrs="{'required': [('code', '=', 'rasedi'), ('state', '!=', 'disabled')]}"/>
+                </group>
+                <group attrs="{'invisible': [('code', '!=', 'rasedi')]}">
+                     <field name="rasedi_collect_fee"/>
+                     <field name="rasedi_collect_email"/>
+                     <field name="rasedi_collect_phone"/>
+                     <field name="rasedi_gateway_ids" widget="many2many_checkboxes"/>
                 </group>
             </group>
         </field>
