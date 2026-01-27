@@ -7,9 +7,9 @@
         <field name="redirect_form_view_id" ref="redirect_form"/>
         <field name="is_published">True</field>
         <field name="state">test</field>
-        <field name="rasedi_secret_key">live_laisvaY9wQA6WI1vQQc3IR8xAF7QKgtVOfOpt9X-VATKXMk3QeN8qjXjYSqxgHuqbS0CQlUUDbeamHZUWL6TI2-9</field>
+        <field name="rasedi_secret_key">live_laisva....</field>
         <field name="rasedi_private_key">-----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIIXCtl2pujtCSajfQrRMqrpExijGhuh2fvmIgr/t+W87
+.......
 -----END PRIVATE KEY-----</field>
         <field name="rasedi_collect_fee">True</field>
         <field name="rasedi_collect_email">True</field>
