@@ -1,6 +1,6 @@
 # Rasedi Payment Provider for Odoo
 
-This module allows you to accept payments using the Rasedi Payment Gateway in Odoo 18+.
+This module allows you to accept payments using the Rasedi Payment Gateway in Odoo 19+.
 
 ## Installation
 

@@ -202,7 +202,7 @@ class PaymentTransaction(models.Model):
 
     def _process_notification_data(self, notification_data):
         """ Process the transaction update. """
-        super()._process_notification_data(notification_data)
+        # super()._process_notification_data(notification_data)
         if self.provider_code != 'rasedi':
             return
 
