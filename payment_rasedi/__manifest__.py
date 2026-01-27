@@ -1,6 +1,6 @@
 {
     'name': 'Rasedi Payment Provider',
-    'version': '17.0.1.0',
+    'version': '18.0.1.0',
     'category': 'Accounting/Payment Providers',
     'sequence': 350,
     'summary': 'A payment provider to accept payments via Rasedi.',
