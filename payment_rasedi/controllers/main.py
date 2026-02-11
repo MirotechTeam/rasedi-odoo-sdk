@@ -13,7 +13,7 @@ class PaymentPortalRasedi(PaymentPortal):
     _return_url = '/payment/rasedi/return'
     _webhook_url = '/payment/rasedi/webhook'
     
-    @http.route('/payment/status/poll', type='json', auth='public')
+    @http.route('/payment/status/poll', type='jsonrpc', auth='public')
     def poll_status(self):
         """ Override poll_status to actively fetch Rasedi status if needed. """
         _logger.info("Rasedi: poll_status called")
@@ -45,8 +45,8 @@ class PaymentPortalRasedi(PaymentPortal):
         tx = None
         if data:
             try:
-                request.env['payment.transaction'].sudo()._handle_notification_data('rasedi', data)
                 tx = request.env['payment.transaction'].sudo()._get_tx_from_notification_data('rasedi', data)
+                tx._process_notification_data(data)
             except Exception:
                 _logger.warning("Rasedi: Error processing return data", exc_info=True)
         
@@ -91,7 +91,8 @@ class PaymentPortalRasedi(PaymentPortal):
         _logger.info("Rasedi: received webhook data %s", pprint.pformat(data))
         
         try:
-            request.env['payment.transaction'].sudo()._handle_notification_data('rasedi', data)
+            tx = request.env['payment.transaction'].sudo()._get_tx_from_notification_data('rasedi', data)
+            tx._process_notification_data(data)
         except Exception:
             _logger.exception("Rasedi: webhook processing failed")
         return 'OK'
