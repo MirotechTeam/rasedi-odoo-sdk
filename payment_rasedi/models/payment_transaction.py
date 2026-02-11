@@ -41,7 +41,10 @@ class PaymentTransaction(models.Model):
             return
 
         # Search journals with sudo
-        bank_journals = self.env['account.journal'].sudo().search([('type', '=', 'bank')])
+        bank_journals = self.env['account.journal'].sudo().search([
+            ('type', '=', 'bank'),
+            ('company_id', '=', self.company_id.id),
+        ])
         _logger.info(f"Rasedi: Checking {len(bank_journals)} bank journals for configuration.")
         
         for journal in bank_journals:
@@ -69,8 +72,9 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'rasedi':
             return res
 
-        # Determine Environment URL and Relative Path
-        if self.provider_id.state == 'enabled':
+        # Determine Environment URL and Relative Path based on Secret Key prefix
+        secret_key = self.provider_id.rasedi_secret_key
+        if secret_key and secret_key.startswith('live_'):
             api_url = 'https://stage.api.rasedi.com/v1/payment/rest/live/create'
             relative_path = "/v1/payment/rest/live/create"
         else:
@@ -236,8 +240,9 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'rasedi':
             return
         
-        # Determine URL
-        if self.provider_id.state == 'enabled':
+        # Determine URL based on Secret Key prefix
+        secret_key = self.provider_id.rasedi_secret_key
+        if secret_key and secret_key.startswith('live_'):
             base_url = 'https://stage.api.rasedi.com/v1/payment/rest/live'
             relative_base = "/v1/payment/rest/live"
         else:
