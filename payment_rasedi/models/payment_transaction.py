@@ -70,7 +70,9 @@ class PaymentTransaction(models.Model):
             return res
 
         # Determine Environment URL and Relative Path
-        if self.provider_id.state == 'enabled':
+        # Determine Environment URL and Relative Path based on Secret Key prefix
+        secret_key = self.provider_id.rasedi_secret_key
+        if secret_key and secret_key.startswith('live_'):
             api_url = 'https://stage.api.rasedi.com/v1/payment/rest/live/create'
             relative_path = "/v1/payment/rest/live/create"
         else:
@@ -202,7 +204,7 @@ class PaymentTransaction(models.Model):
 
     def _process_notification_data(self, notification_data):
         """ Process the transaction update. """
-        super()._process_notification_data(notification_data)
+        # super()._process_notification_data(notification_data)
         if self.provider_code != 'rasedi':
             return
 
@@ -237,7 +239,9 @@ class PaymentTransaction(models.Model):
             return
         
         # Determine URL
-        if self.provider_id.state == 'enabled':
+        # Determine URL based on Secret Key prefix
+        secret_key = self.provider_id.rasedi_secret_key
+        if secret_key and secret_key.startswith('live_'):
             base_url = 'https://stage.api.rasedi.com/v1/payment/rest/live'
             relative_base = "/v1/payment/rest/live"
         else:
