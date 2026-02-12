@@ -5,7 +5,7 @@
         <field name="model">payment.provider</field>
         <field name="inherit_id" ref="payment.payment_provider_form"/>
         <field name="arch" type="xml">
-            <group name="provider_credentials" position="after">
+            <group name="provider_credentials" position="inside">
                 <group invisible="code != 'rasedi'">
                     <field name="rasedi_secret_key" required="code == 'rasedi' and state != 'disabled'"/>
                     <field name="rasedi_private_key" required="code == 'rasedi' and state != 'disabled'"/>
