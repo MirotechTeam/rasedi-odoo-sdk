@@ -19,8 +19,8 @@ class PaymentProvider(models.Model):
     _inherit = 'payment.provider'
 
     code = fields.Selection(selection_add=[('rasedi', 'Rasedi')], ondelete={'rasedi': 'set default'})
-    rasedi_secret_key = fields.Char(string='Rasedi Secret Key', required_if_provider='rasedi', groups='base.group_system')
-    rasedi_private_key = fields.Text(string='Rasedi Private Key', required_if_provider='rasedi', groups='base.group_system')
+    rasedi_secret_key = fields.Char(string='Rasedi Secret Key')
+    rasedi_private_key = fields.Text(string='Rasedi Secret Key')
     
     # Configuration
     rasedi_gateway_ids = fields.Many2many('payment.provider.rasedi.gateway', string='Allowed Gateways')
