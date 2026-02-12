@@ -18,4 +18,5 @@
     'images': ['static/description/main_screenshot.png'],
     'application': False,
     'license': 'LGPL-3',
+    'uninstall_hook': 'uninstall_hook',
 }
