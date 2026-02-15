@@ -20,7 +20,7 @@ class PaymentProvider(models.Model):
 
     code = fields.Selection(selection_add=[('rasedi', 'Rasedi')], ondelete={'rasedi': 'set default'})
     rasedi_secret_key = fields.Char(string='Rasedi Secret Key')
-    rasedi_private_key = fields.Text(string='Rasedi Secret Key')
+    rasedi_private_key = fields.Text(string='Rasedi Publishable Key')
     
     # Configuration
     rasedi_gateway_ids = fields.Many2many('payment.provider.rasedi.gateway', string='Allowed Gateways')
