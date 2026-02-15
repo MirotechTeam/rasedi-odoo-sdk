@@ -73,10 +73,10 @@ class PaymentTransaction(models.Model):
         # Determine Environment URL and Relative Path based on Secret Key prefix
         secret_key = self.provider_id.rasedi_secret_key
         if secret_key and secret_key.startswith('live_'):
-            api_url = 'https://stage.api.rasedi.com/v1/payment/rest/live/create'
+            api_url = 'https://api.rasedi.com/v1/payment/rest/live/create'
             relative_path = "/v1/payment/rest/live/create"
         else:
-            api_url = 'https://stage.api.rasedi.com/v1/payment/rest/test/create'
+            api_url = 'https://api.rasedi.com/v1/payment/rest/test/create'
             relative_path = "/v1/payment/rest/test/create"
         
         base_url = self.provider_id.get_base_url()
@@ -242,10 +242,10 @@ class PaymentTransaction(models.Model):
         # Determine URL based on Secret Key prefix
         secret_key = self.provider_id.rasedi_secret_key
         if secret_key and secret_key.startswith('live_'):
-            base_url = 'https://stage.api.rasedi.com/v1/payment/rest/live'
+            base_url = 'https://api.rasedi.com/v1/payment/rest/live'
             relative_base = "/v1/payment/rest/live"
         else:
-            base_url = 'https://stage.api.rasedi.com/v1/payment/rest/test'
+            base_url = 'https://api.rasedi.com/v1/payment/rest/test'
             relative_base = "/v1/payment/rest/test"
 
         # Endpoint
