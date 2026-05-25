@@ -278,15 +278,11 @@ class PaymentTransaction(models.Model):
             data = req.json()
             
             _logger.info("Rasedi: Status response: %s", json.dumps(data))
-            
-            # The structure based on SDK seems to return body directly or wrapped?
-            # client.py: resp["body"] -> IPaymentDetailsResponseBody
-            # The API returns the details directly usually. 
-            # Looking at client.py: 
-            # resp = await self.__call(...) which returns body.
-            # So 'data' here is the payment details object.
-            
-            self._process_notification_data(data)
+
+            # Rasedi API may wrap the payload under a 'body' key
+            payload = data.get('body', data)
+
+            self._process_notification_data(payload)
             
         except Exception as e:
             _logger.error("Rasedi: Failed to fetch status: %s", e)
