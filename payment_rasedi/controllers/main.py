@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import json
 import logging
 import pprint
 
@@ -64,35 +65,67 @@ class PaymentPortalRasedi(PaymentPortal):
                 tx._rasedi_fetch_transaction_status()
             except Exception as e:
                 _logger.warning("Rasedi: Failed to force fetch status on return: %s", e)
-        
-        # Try to redirect to invoice if possible
-        # Try to redirect to invoice if possible - DISABLED for now to prevent login issues
-        # Public users cannot access report download URLs directly without token.
-        # try:
-        #     if tx and tx.state == 'done' and tx.invoice_ids:
-        #         invoice = tx.invoice_ids[0]
-        #         if invoice.state == 'posted':
-        #             return request.redirect(f'/report/pdf/account.report_invoice/{invoice.id}')
-        # except Exception:
-        #     _logger.warning("Rasedi: Could not redirect to invoice, falling back to status page.")
+
+        # In Odoo 19, account.payment creation runs via cron (_cron_finalize_post_processing).
+        # Trigger it synchronously here so the invoice is reconciled immediately without
+        # waiting for the next cron tick.
+        if tx:
+            try:
+                tx = tx.sudo()
+                if tx.exists() and tx.state == 'done' and not tx.payment_id:
+                    _logger.info("Rasedi: Triggering synchronous payment finalization on return for tx %s", tx.reference)
+                    if hasattr(tx, '_finalize_post_processing'):
+                        tx._finalize_post_processing()
+                    else:
+                        tx._create_payment()
+            except Exception as e:
+                _logger.warning("Rasedi: Return payment finalization failed — cron will retry: %s", e)
 
         return request.redirect('/payment/status')
 
     @http.route(_webhook_url, type='http', auth='public', methods=['POST'], csrf=False)
     def rasedi_webhook(self, **data):
         """ Handle webhook from Rasedi. """
-        # Rasedi sends JSON body, which Odoo's type='http' doesn't auto-parse into **data
+        # type='http' does not auto-parse JSON bodies — read and decode manually
         if not data:
             try:
-                data = request.get_json_data()
-            except Exception:
-                pass
-        
+                raw_body = request.httprequest.data
+                if raw_body:
+                    data = json.loads(raw_body.decode('utf-8'))
+            except (ValueError, UnicodeDecodeError) as e:
+                _logger.warning("Rasedi: Failed to parse webhook JSON body: %s", e)
+
         _logger.info("Rasedi: received webhook data %s", pprint.pformat(data))
-        
+
+        if not data:
+            _logger.warning("Rasedi: Webhook received empty payload, ignoring")
+            return 'OK'
+
         try:
             tx = request.env['payment.transaction'].sudo()._get_tx_from_notification_data('rasedi', data)
             tx._process_notification_data(data)
         except Exception:
             _logger.exception("Rasedi: webhook processing failed")
+
+        # In Odoo 19, account.payment creation runs via cron (_cron_finalize_post_processing).
+        # Trigger it synchronously here so the invoice is reconciled immediately without
+        # waiting for the next cron tick.
+        try:
+            reference = data.get('referenceCode')
+            if reference:
+                tx = request.env['payment.transaction'].sudo().search([
+                    ('provider_reference', '=', reference),
+                    ('provider_code', '=', 'rasedi'),
+                    ('state', '=', 'done'),
+                    ('payment_id', '=', False),
+                ], limit=1)
+                if tx:
+                    _logger.info("Rasedi: Triggering synchronous payment finalization for tx %s", tx.reference)
+                    if hasattr(tx, '_finalize_post_processing'):
+                        tx._finalize_post_processing()
+                    else:
+                        tx._create_payment()
+        except Exception:
+            _logger.warning("Rasedi: Synchronous payment finalization failed — cron will retry", exc_info=True)
+
         return 'OK'
